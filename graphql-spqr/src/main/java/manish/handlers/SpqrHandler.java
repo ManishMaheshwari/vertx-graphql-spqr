@@ -34,75 +34,37 @@ public class SpqrHandler {
         String query = routingContext.getBodyAsString();
         LOGGER.debug("request body: {}", query);
 
-        if(query.contains("IntrospectionQuery")){
-
-            LOGGER.debug(">>>> INTROSPECTION QUERY");
-
-            JsonObject json = routingContext.getBodyAsJson();
-            String introSpection = json.getString("query");
-            LOGGER.debug("Introspection element: {}", introSpection);
-            ExecutionResult executionResult = graphql.execute(introSpection);
-            LOGGER.debug("executionResult data: {}", executionResult.getData().toString());
-
-            Map<String, Object> mapData = executionResult.getData();
-           // String introspectionResult = executionResult.getData().toString();
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("data", mapData); // you have to wrap it into a data json key!
-            LOGGER.debug("REsult data - {}" , result);
-            JsonObject jsonResult = new JsonObject(result);
-//            JsonObject jsonResult = new JsonObject(introspectionResult);
-            //JSONObject jsonResult = new JSONObject(result);
-            LOGGER.debug("Json REsult data - {}" , jsonResult.encodePrettily());
-            routingContext.response().end(jsonResult.toString());
-        } else if(query.contains("operationName")){
-            LOGGER.debug(">>>> Playground QUERY");
-
-            JsonObject json = routingContext.getBodyAsJson();
-            String introSpection = json.getString("query");
-            LOGGER.debug("Introspection element: {}", introSpection);
-            ExecutionResult executionResult = graphql.execute(introSpection);
-            LOGGER.debug("executionResult data: {}", executionResult.getData().toString());
-
-            Map<String, Object> mapData = executionResult.getData();
-            // String introspectionResult = executionResult.getData().toString();
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("data", mapData); // you have to wrap it into a data json key!
-            LOGGER.debug("REsult data - {}" , result);
-            JsonObject jsonResult = new JsonObject(result);
-//            JsonObject jsonResult = new JsonObject(introspectionResult);
-            //JSONObject jsonResult = new JSONObject(result);
-            LOGGER.debug("Json REsult data - {}" , jsonResult.encodePrettily());
-            routingContext.response().end(jsonResult.toString());
-        }else{
-            LOGGER.debug(">>>> NORMAL QUERY");
-            ExecutionResult executionResult = graphql.execute(query);
-            LOGGER.debug("Execution result: {}", executionResult.getData().toString());
-            routingContext.response().end(executionResult.getData().toString());
+        if (query.contains("operationName")) {
+            //Playground queries are Json based
+            servePlaygroundQuery(routingContext);
+        } else {
+            //Others could be normal GQL
+            serveOtherQueries(routingContext, query);
         }
+    }
 
+    private void serveOtherQueries(RoutingContext routingContext, String query) {
+        ExecutionResult executionResult = graphql.execute(query);
+        LOGGER.debug("Execution result: {}", executionResult.getData().toString());
+        routingContext.response().end(executionResult.getData().toString());
+    }
 
-
-//        if (query.has("query") && query.getString("query").indexOf("IntrospectionQuery") != -1) {
-//            String introSpection = query.getString("query");
-//            Map<String, Object> result = new HashMap<>();
-//            result.put("data", graphQLService.query(introSpection)); // you have to wrap it into a data json key!
-//            return new JSONObject(result);
-//        }
-
-
-//    ExecutionResult executionResult = graphql.execute(ExecutionInput.newExecutionInput()
-//            .query(query)
-//            .operationName(json.getString("operationName"))
-//            .context(routingContext.getBodyAsString())
-//            .build());
-    //executionResult.toSpecification();
-
-
-      //  ExecutionResult executionResult = graphql.execute(query);
-
-
+    private void servePlaygroundQuery(RoutingContext routingContext) {
+        JsonObject json = routingContext.getBodyAsJson();
+        String queryString = json.getString("query");
+        String operationName = json.getString("operationName");
+        ExecutionResult executionResult = graphql.execute(ExecutionInput.newExecutionInput()
+                .query(queryString)
+                .operationName(operationName)
+                .context(routingContext.getBodyAsString())
+                .build());
+        executionResult.toSpecification();
+        Map<String, Object> mapData = executionResult.getData();
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", mapData);
+        JsonObject jsonResult = new JsonObject(result);
+        LOGGER.debug("Json Result data - {}", jsonResult.encodePrettily());
+        routingContext.response().end(jsonResult.toString());
     }
 
     public void handleFailure(RoutingContext routingContext) {
