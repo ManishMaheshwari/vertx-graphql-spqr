@@ -13,11 +13,15 @@ public class User {
     private Integer id;
     private Date registrationDate;
 
+    private GENDER gender;
 
-    public User(Integer id, String name, Date registrationDate) {
+
+    public enum GENDER {M,F;};
+    public User(Integer id, String name, Date registrationDate, GENDER gender) {
         this.id = id;
         this.name = name;
         this.registrationDate = registrationDate;
+        this.gender = gender;
     }
 
 
@@ -25,6 +29,7 @@ public class User {
     public Integer getId() {
         return id;
     }
+
 
     public void setId(Integer id) {
         this.id = id;
@@ -46,6 +51,15 @@ public class User {
 
     public void setRegistrationDate(Date registrationDate) {
         this.registrationDate = registrationDate;
+    }
+
+    @GraphQLQuery(name = "gender", description = "Gender of user")
+    public GENDER getGender() {
+        return gender;
+    }
+
+    public void setGender(GENDER gender) {
+        this.gender = gender;
     }
 
 

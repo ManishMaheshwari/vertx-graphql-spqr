@@ -72,7 +72,9 @@ public class GQLVerticle extends AbstractVerticle {
                 .withBasePackages("manish")
                 .withOperationsFromSingleton(userService)
                 .generate();
-        GraphQL graphql = new GraphQL(schema);
+        GraphQL graphql = new GraphQL.Builder(schema)
+               //    .queryExecutionStrategy(null)
+                .build();
         return graphql;
     }
 

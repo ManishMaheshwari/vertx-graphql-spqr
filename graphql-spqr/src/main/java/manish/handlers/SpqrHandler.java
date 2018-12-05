@@ -38,7 +38,7 @@ public class SpqrHandler {
             //Playground queries are Json based
             servePlaygroundQuery(routingContext);
         } else {
-            //Others could be normal GQL
+            //Others could be non-json GQL
             serveOtherQueries(routingContext, query);
         }
     }
@@ -51,12 +51,16 @@ public class SpqrHandler {
 
     private void servePlaygroundQuery(RoutingContext routingContext) {
         JsonObject json = routingContext.getBodyAsJson();
+        LOGGER.debug("Request - {}", json.encodePrettily());
         String queryString = json.getString("query");
         String operationName = json.getString("operationName");
+        JsonObject variables = json.getJsonObject("variables");
+
         ExecutionResult executionResult = graphql.execute(ExecutionInput.newExecutionInput()
                 .query(queryString)
                 .operationName(operationName)
                 .context(routingContext.getBodyAsString())
+                .variables(variables.getMap())
                 .build());
         executionResult.toSpecification();
         Map<String, Object> mapData = executionResult.getData();
