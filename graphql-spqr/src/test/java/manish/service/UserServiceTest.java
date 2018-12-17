@@ -30,7 +30,7 @@ public class UserServiceTest {
     @Test
     public void getTwitterProfile() throws Exception {
         UserService userService = new UserService();
-        List<TwitterProfile> profiles = userService.getTwitterProfile(new User(102, "amit", null));
+        List<TwitterProfile> profiles = userService.getTwitterProfile(new User(102, "amit", null, User.GENDER.M));
         assertEquals(1, profiles.size());
         TwitterProfile profile = profiles.get(0);
         assertTrue(profile.getHandle().equals("amit.twitter"));
